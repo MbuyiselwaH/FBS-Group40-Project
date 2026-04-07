@@ -74,11 +74,12 @@ def init_scheduler(app):
     scheduler.add_job(
         func             = send_booking_reminders,
         args             = [app],
-        trigger          = IntervalTrigger(seconds=60),
+        trigger          = IntervalTrigger(minutes=10),
         id               = 'booking_reminders',
         name             = '30-min booking reminder',
         replace_existing = True,
         misfire_grace_time = 30,
+        max_instances= 1,
     )
     scheduler.start()
     logger.info('APScheduler started — reminder job active')
