@@ -1,11 +1,30 @@
 import os
+import warnings
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SECRET_KEY= os.getenv('SECRET_KEY')
-SQLALCHEMY_DATABASE_URI= os.getenv('DATABASE_URL')
-SQLALCHEMY_TRACK_MODIFICATIONS= False
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///fbs.db')
+
+# Render provides DATABASE_URL with postgres:// but SQLAlchemy requires postgresql://
+if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+    SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_ENGINE_OPTIONS = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
+
+if 'sqlite' in (SQLALCHEMY_DATABASE_URI or ''):
+    warnings.warn(
+        '\n*** WARNING: Using SQLite — data WILL BE LOST on platforms with '
+        'ephemeral filesystems (Render, Heroku, etc.).\n'
+        '*** Set DATABASE_URL to a PostgreSQL connection string for production.\n',
+        stacklevel=1,
+    )
 WTF_CSRF_ENABLED= True
 
 # Mail
